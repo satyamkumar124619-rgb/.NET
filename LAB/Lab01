@@ -1,0 +1,231 @@
+using System;
+
+// Student class to store and display student admission details
+class Student
+{
+    // Private data members
+    private int id;
+    private string enrollmentNo;
+    private string name;
+    private string fatherName;
+    private string motherName;
+    private string dob;
+    private string gender;
+    private string course;
+    private int courseDuration;
+    private string studentAddress;
+    private string university;
+    private string hostel;
+    private string bus;
+    private string parentContact;
+    private string aadharNo;
+    private string email;
+    private double marks10;
+    private double marks12;
+    private double fees;
+
+    // Constructor to initialize all student details
+    public Student(
+        int id,
+        string enrollmentNo,
+        string name,
+        string fatherName,
+        string motherName,
+        string dob,
+        string gender,
+        string course,
+        int courseDuration,
+        string studentAddress,
+        string university,
+        string hostel,
+        string bus,
+        string parentContact,
+        string aadharNo,
+        string email,
+        double marks10,
+        double marks12,
+        double fees)
+    {
+        this.id = id;
+        this.enrollmentNo = enrollmentNo;
+        this.name = name;
+        this.fatherName = fatherName;
+        this.motherName = motherName;
+        this.dob = dob;
+        this.gender = gender;
+        this.course = course;
+        this.courseDuration = courseDuration;
+        this.studentAddress = studentAddress;
+        this.university = university;
+        this.hostel = hostel;
+        this.bus = bus;
+        this.parentContact = parentContact;
+        this.aadharNo = aadharNo;
+        this.email = email;
+        this.marks10 = marks10;
+        this.marks12 = marks12;
+        this.fees = fees;
+    }
+
+    // Method to display complete student admission details
+    public void Display()
+    {
+        Console.WriteLine("\n====================================================");
+        Console.WriteLine("        MARWADI UNIVERSITY ADMISSION DETAILS");
+        Console.WriteLine("====================================================");
+
+        Console.WriteLine("Student ID            : " + id);
+        Console.WriteLine("Enrollment No.        : " + enrollmentNo);
+        Console.WriteLine("Student Name          : " + name);
+        Console.WriteLine("Father's Name         : " + fatherName);
+        Console.WriteLine("Mother's Name         : " + motherName);
+        Console.WriteLine("Date of Birth         : " + dob);
+        Console.WriteLine("Gender                : " + gender);
+        Console.WriteLine("Course                : " + course);
+        Console.WriteLine("Course Duration       : " + courseDuration + " Years");
+        Console.WriteLine("Student Address       : " + studentAddress);
+        Console.WriteLine("University            : " + university);
+        Console.WriteLine("Hostel Required       : " + hostel);
+        Console.WriteLine("Bus Facility          : " + bus);
+        Console.WriteLine("Parent Contact No.    : " + parentContact);
+        Console.WriteLine("Aadhaar Number        : " + aadharNo);
+        Console.WriteLine("Student Email ID      : " + email);
+        Console.WriteLine("10th Percentage       : " + marks10 + "%");
+        Console.WriteLine("12th Percentage       : " + marks12 + "%");
+        Console.WriteLine("Admission Fees        : Rs. " + fees);
+
+        Console.WriteLine("====================================================");
+    }
+}
+
+// Main class
+class Program
+{
+    // Main method - program execution starts here
+    static void Main(string[] args)
+    {
+        Console.WriteLine("===== MARWADI UNIVERSITY STUDENT ADMISSION =====\n");
+
+        // Accept Student ID
+        Console.Write("Enter Student ID: ");
+        int id = Convert.ToInt32(Console.ReadLine());
+
+        // Accept Enrollment Number
+        Console.Write("Enter Enrollment Number: ");
+        string enrollmentNo = Console.ReadLine();
+
+        // Accept Student Name
+        Console.Write("Enter Student Name: ");
+        string name = Console.ReadLine();
+
+        // Accept Father's Name
+        Console.Write("Enter Father's Name: ");
+        string fatherName = Console.ReadLine();
+
+        // Accept Mother's Name
+        Console.Write("Enter Mother's Name: ");
+        string motherName = Console.ReadLine();
+
+        // Accept Date of Birth
+        Console.Write("Enter Date of Birth (DD/MM/YYYY): ");
+        string dob = Console.ReadLine();
+
+        // Accept Gender
+        Console.Write("Enter Gender (Male/Female): ");
+        string gender = Console.ReadLine();
+
+        // Accept Course Name
+        Console.Write("Enter Course: ");
+        string course = Console.ReadLine();
+
+        // Validate Course Duration (Minimum 4 Years)
+        int courseDuration;
+        do
+        {
+            Console.Write("Enter Course Duration (Minimum 4 Years): ");
+            courseDuration = Convert.ToInt32(Console.ReadLine());
+
+            if (courseDuration < 4)
+            {
+                Console.WriteLine("Course Duration must be at least 4 Years.");
+            }
+
+        } while (courseDuration < 4);
+
+        // Accept Student Address
+        Console.Write("Enter Student Address: ");
+        string studentAddress = Console.ReadLine();
+
+        // Accept University Name
+        Console.Write("Enter University: ");
+        string university = Console.ReadLine();
+
+        // Accept Hostel Requirement
+        Console.Write("Hostel Required (Yes/No): ");
+        string hostel = Console.ReadLine();
+
+        // Accept Bus Facility Requirement
+        Console.Write("Bus Facility Required (Yes/No): ");
+        string bus = Console.ReadLine();
+
+        // Accept Parent Contact Number
+        Console.Write("Enter Parent Contact Number: ");
+        string parentContact = Console.ReadLine();
+
+        // Accept Aadhaar Number
+        Console.Write("Enter Aadhaar Number: ");
+        string aadharNo = Console.ReadLine();
+
+        // Accept Student Email
+        Console.Write("Enter Student Email ID: ");
+        string email = Console.ReadLine();
+
+        // Accept 10th Percentage
+        Console.Write("Enter 10th Percentage: ");
+        double marks10 = Convert.ToDouble(Console.ReadLine());
+
+        // Accept 12th Percentage
+        Console.Write("Enter 12th Percentage: ");
+        double marks12 = Convert.ToDouble(Console.ReadLine());
+
+        // Accept Admission Fees
+        Console.Write("Enter Admission Fees: ");
+        double fees = Convert.ToDouble(Console.ReadLine());
+
+        // Create Student object using constructor
+        Student s1 = new Student(
+            id,
+            enrollmentNo,
+            name,
+            fatherName,
+            motherName,
+            dob,
+            gender,
+            course,
+            courseDuration,
+            studentAddress,
+            university,
+            hostel,
+            bus,
+            parentContact,
+            aadharNo,
+            email,
+            marks10,
+            marks12,
+            fees);
+
+        // Display entered student information
+        s1.Display();
+
+        // Display admission success message
+        Console.WriteLine("\n***********************************************");
+        Console.WriteLine("           ADMISSION SUCCESSFUL!");
+        Console.WriteLine("      Welcome to Marwadi University.");
+        Console.WriteLine("   Your Admission has been Confirmed.");
+        Console.WriteLine("      We Wish You a Bright Future!");
+        Console.WriteLine("***********************************************");
+
+        // Wait for a key press before closing the program
+        Console.ReadKey();
+    }
+}
