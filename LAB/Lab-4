@@ -1,0 +1,428 @@
+Source: Registration.aspx
+
+Code:
+<%@ Page Language="C#" AutoEventWireup="true"
+    CodeBehind="Register.aspx.cs"
+    Inherits="OnlineEventRegistration.Register" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Online Event Registration</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            width: 600px;
+            margin: 40px auto;
+            padding: 25px;
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .row {
+            margin-bottom: 15px;
+        }
+
+        .label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+        }
+
+        .input {
+            width: 300px;
+            padding: 7px;
+        }
+
+        .btn {
+
+            padding: 10px 25px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .error {
+            color: red;
+            font-size: 13px;
+        }
+
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<form id="form1" runat="server">
+
+<div class="container">
+
+    <h2>Online Event Registration</h2>
+
+    <asp:ValidationSummary
+        ID="ValidationSummary1"
+        runat="server"
+        ForeColor="Red"
+        HeaderText="Please correct the following errors:" />
+
+    <!-- Name -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblName"
+            runat="server"
+            CssClass="label"
+            Text="Full Name:" />
+
+        <asp:TextBox
+            ID="txtName"
+            runat="server"
+            CssClass="input" />
+
+        <asp:RequiredFieldValidator
+            ID="rfvName"
+            runat="server"
+            ControlToValidate="txtName"
+            ErrorMessage="Name is required."
+            CssClass="error"
+            Display="Dynamic">
+        </asp:RequiredFieldValidator>
+    </div>
+
+
+    <!-- Email -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblEmail"
+            runat="server"
+            CssClass="label"
+            Text="Email:" />
+
+        <asp:TextBox
+            ID="txtEmail"
+            runat="server"
+            CssClass="input" />
+        <asp:RequiredFieldValidator
+            ID="rfvEmail"
+            runat="server"
+            ControlToValidate="txtEmail"
+            ErrorMessage="Email is required."
+            CssClass="error"
+            Display="Dynamic">
+        </asp:RequiredFieldValidator>
+        <asp:RegularExpressionValidator
+            ID="revEmail"
+            runat="server"
+            ControlToValidate="txtEmail"
+            ErrorMessage="Enter a valid email."
+            ValidationExpression="^[^@\s]+@[^@\s]+\.[^@\s]+$"
+            CssClass="error"
+            Display="Dynamic">
+        </asp:RegularExpressionValidator>
+
+    </div>
+
+
+    <!-- Mobile -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblMobile"
+            runat="server"
+            CssClass="label"
+            Text="Mobile:" />
+
+        <asp:TextBox
+            ID="txtMobile"
+            runat="server"
+            CssClass="input" />
+
+        <asp:RequiredFieldValidator
+            ID="rfvMobile"
+            runat="server"
+            ControlToValidate="txtMobile"
+            ErrorMessage="Mobile number is required."
+            CssClass="error"
+            Display="Dynamic">
+
+        </asp:RequiredFieldValidator>
+
+        <asp:RegularExpressionValidator
+            ID="revMobile"
+            runat="server"
+            ControlToValidate="txtMobile"
+            ErrorMessage="Enter 10 digit mobile number."
+            ValidationExpression="^[0-9]{10}$"
+            CssClass="error"
+            Display="Dynamic">
+        </asp:RegularExpressionValidator>
+
+    </div>
+
+
+    <!-- Gender -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblGender"
+            runat="server"
+            CssClass="label"
+            Text="Gender:" />
+
+        <asp:RadioButtonList
+            ID="rblGender"
+            runat="server"
+            RepeatDirection="Horizontal">
+
+            <asp:ListItem Text="Male" Value="Male" />
+            <asp:ListItem Text="Female" Value="Female" />
+            <asp:ListItem Text="Other" Value="Other" />
+
+        </asp:RadioButtonList>
+
+        <asp:RequiredFieldValidator
+            ID="rfvGender"
+            runat="server"
+            ControlToValidate="rblGender"
+            ErrorMessage="Please select gender."
+            CssClass="error">
+        </asp:RequiredFieldValidator>
+
+    </div>
+
+
+    <!-- Event -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblEvent"
+            runat="server"
+            CssClass="label"
+            Text="Select Event:" />
+
+        <asp:DropDownList
+
+            ID="ddlEvent"
+
+            runat="server"
+            CssClass="input">
+
+            <asp:ListItem Text="-- Select Event --" Value="" />
+            <asp:ListItem Text="Web Development Workshop"
+                Value="Web Development Workshop" />
+            <asp:ListItem Text="AI &amp; Machine Learning Seminar"
+                Value="AI &amp; Machine Learning Seminar" />
+            <asp:ListItem Text="Cyber Security Conference"
+                Value="Cyber Security Conference" />
+            <asp:ListItem Text="Cloud Computing Workshop"
+                Value="Cloud Computing Workshop" />
+
+        </asp:DropDownList>
+
+        <asp:RequiredFieldValidator
+            ID="rfvEvent"
+            runat="server"
+            ControlToValidate="ddlEvent"
+            InitialValue=""
+            ErrorMessage="Please select an event."
+            CssClass="error">
+        </asp:RequiredFieldValidator>
+
+    </div>
+
+
+    <!-- Date -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblDate"
+            runat="server"
+            CssClass="label"
+            Text="Event Date:" />
+
+        <asp:TextBox
+            ID="txtDate"
+            runat="server"
+            TextMode="Date"
+            CssClass="input" />
+
+        <asp:RequiredFieldValidator
+            ID="rfvDate"
+            runat="server"
+            ControlToValidate="txtDate"
+            ErrorMessage="Please select event date."
+            CssClass="error">
+        </asp:RequiredFieldValidator>
+
+    </div>
+
+
+    <!-- Participation -->
+
+    <div class="row">
+
+        <asp:Label
+            ID="lblParticipation"
+            runat="server"
+            CssClass="label"
+            Text="Participation:" />
+
+        <asp:RadioButtonList
+            ID="rblParticipation"
+            runat="server"
+            RepeatDirection="Horizontal">
+
+            <asp:ListItem Text="Online" Value="Online" />
+            <asp:ListItem Text="Offline" Value="Offline" />
+
+        </asp:RadioButtonList>
+
+        <asp:RequiredFieldValidator
+            ID="rfvParticipation"
+            runat="server"
+            ControlToValidate="rblParticipation"
+            ErrorMessage="Please select participation type."
+            CssClass="error">
+        </asp:RequiredFieldValidator>
+
+    </div>
+
+
+    <!-- Comments -->
+    <div class="row">
+
+        <asp:Label
+            ID="lblComments"
+            runat="server"
+            CssClass="label"
+            Text="Comments:" />
+
+        <asp:TextBox
+            ID="txtComments"
+            runat="server"
+            TextMode="MultiLine"
+            Rows="4"
+            CssClass="input" />
+
+    </div>
+
+
+    <!-- Terms -->
+    <div class="row">
+
+        <asp:CheckBox
+            ID="chkTerms"
+            runat="server"
+            Text=" I agree to the terms and conditions." />
+        <asp:CustomValidator
+
+            ID="cvTerms"
+            runat="server"
+            ErrorMessage="Please accept terms and conditions."
+
+            CssClass="error"
+            OnServerValidate="cvTerms_ServerValidate">
+        </asp:CustomValidator>
+
+    </div>
+
+
+    <!-- Register Button -->
+    <div class="row">
+
+        <asp:Button
+            ID="btnRegister"
+            runat="server"
+            Text="Register"
+            CssClass="btn"
+            OnClick="btnRegister_Click" />
+
+    </div>
+
+
+    <!-- Success Message -->
+    <asp:Label
+        ID="lblMessage"
+        runat="server"
+        CssClass="success">
+    </asp:Label>
+
+</div>
+
+</form>
+
+</body>
+</html>
+
+
+Source: Registration.aspx.cs
+
+Code:
+
+using System;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using System.Xml.Linq;
+
+namespace OnlineEventRegistration
+{
+    public partial class Register : Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            // Disable unobtrusive validation to avoid requiring a jQuery ScriptResourceMapping
+
+            UnobtrusiveValidationMode = UnobtrusiveValidationMode.None;
+        }
+
+        protected void btnRegister_Click(object sender, EventArgs e)
+        {
+
+            if (Page.IsValid)
+            {
+                string name = txtName.Text.Trim();
+                string email = txtEmail.Text.Trim();
+                string mobile = txtMobile.Text.Trim();
+
+                string gender = rblGender.SelectedValue;
+                string eventName = ddlEvent.SelectedValue;
+                string eventDate = txtDate.Text;
+                string participation = rblParticipation.SelectedValue;
+                string comments = txtComments.Text.Trim();
+
+                lblMessage.Text =
+                    "Registration Successful!<br/><br/>" +
+                    "Name: " + Server.HtmlEncode(name) + "<br/>" +
+                    "Email: " + Server.HtmlEncode(email) + "<br/>" +
+                    "Mobile: " + Server.HtmlEncode(mobile) + "<br/>" +
+                    "Gender: " + Server.HtmlEncode(gender) + "<br/>" +
+                    "Event: " + Server.HtmlEncode(eventName) + "<br/>" +
+                    "Date: " + Server.HtmlEncode(eventDate) + "<br/>" +
+                    "Participation: " + Server.HtmlEncode(participation) + "<br/>" +
+                    "Comments: " + Server.HtmlEncode(comments);
+            }
+        }
+
+        protected void cvTerms_ServerValidate(
+            object source,
+            ServerValidateEventArgs args)
+        {
+            args.IsValid = chkTerms.Checked;
+        }
+    }
+}
