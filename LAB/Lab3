@@ -1,697 +1,149 @@
 using System;
-
 using System.Collections.Generic;
 
-
-
-// ============================================================
-
-// CUSTOM EXCEPTION CLASS
-
-// ============================================================
-
-public class InvalidExpenseException : Exception
-
+class Expense
 {
-
-&#x20;   public InvalidExpenseException(string message)
-
-&#x20;       : base(message)
-
-&#x20;   {
-
-&#x20;   }
-
+    public int Id { get; set; }
+    public string Description { get; set; }
+    public double Amount { get; set; }
+    public string Category { get; set; }
 }
 
-
-
-
-
-// ============================================================
-
-// EXPENSE CLASS
-
-// ============================================================
-
-public class Expense
-
+class Program
 {
-
-&#x20;   public int Id { get; set; }
-
-&#x20;   public string Description { get; set; }
-
-&#x20;   public double Amount { get; set; }
-
-&#x20;   public string Category { get; set; }
-
-
-
-&#x20;   // Constructor
-
-&#x20;   public Expense(
-
-&#x20;       int id,
-
-&#x20;       string description,
-
-&#x20;       double amount,
-
-&#x20;       string category)
-
-&#x20;   {
-
-&#x20;       // Validate amount
-
-&#x20;       if (amount <= 0)
-
-&#x20;       {
-
-&#x20;           throw new InvalidExpenseException(
-
-&#x20;               "Expense amount must be greater than zero."
-
-&#x20;           );
-
-&#x20;       }
-
-
-
-&#x20;       // Validate description
-
-&#x20;       if (string.IsNullOrWhiteSpace(description))
-
-&#x20;       {
-
-&#x20;           throw new InvalidExpenseException(
-
-&#x20;               "Expense description cannot be empty."
-
-&#x20;           );
-
-&#x20;       }
-
-
-
-&#x20;       // Validate category
-
-&#x20;       if (string.IsNullOrWhiteSpace(category))
-
-&#x20;       {
-
-&#x20;           throw new InvalidExpenseException(
-
-&#x20;               "Expense category cannot be empty."
-
-&#x20;           );
-
-&#x20;       }
-
-
-
-&#x20;       Id = id;
-
-&#x20;       Description = description;
-
-&#x20;       Amount = amount;
-
-&#x20;       Category = category;
-
-&#x20;   }
-
-
-
-&#x20;   // Display expense details
-
-&#x20;   public void DisplayExpense()
-
-&#x20;   {
-
-&#x20;       Console.WriteLine(
-
-&#x20;           $"ID: {Id} | " +
-
-&#x20;           $"Description: {Description} | " +
-
-&#x20;           $"Amount: {Amount:F2} | " +
-
-&#x20;           $"Category: {Category}"
-
-&#x20;       );
-
-&#x20;   }
-
-}
-
-
-
-
-
-// ============================================================
-
-// EXPENSE TRACKER CLASS
-
-// ============================================================
-
-public class ExpenseTracker
-
-{
-
-&#x20;   // Store all expenses
-
-&#x20;   private static List<Expense> expenses = new List<Expense>();
-
-
-
-&#x20;   // Generate unique expense ID
-
-&#x20;   private static int expenseId = 1;
-
-
-
-
-
-&#x20;   // ========================================================
-
-&#x20;   // ADD EXPENSE
-
-&#x20;   // ========================================================
-
-&#x20;   public static void AddExpense(
-
-&#x20;       string description,
-
-&#x20;       double amount,
-
-&#x20;       string category)
-
-&#x20;   {
-
-&#x20;       try
-
-&#x20;       {
-
-&#x20;           // Create new expense
-
-&#x20;           Expense expense = new Expense(
-
-&#x20;               expenseId,
-
-&#x20;               description,
-
-&#x20;               amount,
-
-&#x20;               category
-
-&#x20;           );
-
-
-
-&#x20;           // Add expense to list
-
-&#x20;           expenses.Add(expense);
-
-
-
-&#x20;           // Increase ID
-
-&#x20;           expenseId++;
-
-
-
-&#x20;           Console.WriteLine(
-
-&#x20;               "\\nExpense added successfully!"
-
-&#x20;           );
-
-&#x20;       }
-
-&#x20;       catch (InvalidExpenseException ex)
-
-&#x20;       {
-
-&#x20;           Console.WriteLine(
-
-&#x20;               $"\\nError: {ex.Message}"
-
-&#x20;           );
-
-&#x20;       }
-
-&#x20;   }
-
-
-
-
-
-&#x20;   // ========================================================
-
-&#x20;   // DISPLAY EXPENSES
-
-&#x20;   // ========================================================
-
-&#x20;   public static void DisplayExpenses()
-
-&#x20;   {
-
-&#x20;       if (expenses.Count == 0)
-
-&#x20;       {
-
-&#x20;           Console.WriteLine(
-
-&#x20;               "\\nNo expenses found."
-
-&#x20;           );
-
-
-
-&#x20;           return;
-
-&#x20;       }
-
-
-
-&#x20;       Console.WriteLine(
-
-&#x20;           "\\n========== EXPENSE LIST =========="
-
-&#x20;       );
-
-
-
-&#x20;       foreach (Expense expense in expenses)
-
-&#x20;       {
-
-&#x20;           expense.DisplayExpense();
-
-&#x20;       }
-
-&#x20;   }
-
-
-
-
-
-&#x20;   // ========================================================
-
-&#x20;   // CALCULATE TOTAL
-
-&#x20;   // ========================================================
-
-&#x20;   public static void CalculateTotal()
-
-&#x20;   {
-
-&#x20;       double total = 0;
-
-
-
-&#x20;       foreach (Expense expense in expenses)
-
-&#x20;       {
-
-&#x20;           total += expense.Amount;
-
-&#x20;       }
-
-
-
-&#x20;       // \\u20B9 represents the Indian Rupee symbol (₹)
-
-&#x20;       Console.WriteLine(
-
-&#x20;           $"\\nTotal Expenses: {total:F2}"
-
-&#x20;       );
-
-&#x20;   }
-
-
-
-
-
-&#x20;   // ========================================================
-
-&#x20;   // DELETE EXPENSE
-
-&#x20;   // ========================================================
-
-&#x20;   public static void DeleteExpense(int id)
-
-&#x20;   {
-
-&#x20;       try
-
-&#x20;       {
-
-&#x20;           // Find expense by ID
-
-&#x20;           Expense expense = expenses.Find(
-
-&#x20;               e => e.Id == id
-
-&#x20;           );
-
-
-
-&#x20;           // Check if expense exists
-
-&#x20;           if (expense == null)
-
-&#x20;           {
-
-&#x20;               throw new InvalidExpenseException(
-
-&#x20;                   "Expense with the given ID was not found."
-
-&#x20;               );
-
-&#x20;           }
-
-
-
-&#x20;           // Remove expense
-
-&#x20;           expenses.Remove(expense);
-
-
-
-&#x20;           Console.WriteLine(
-
-&#x20;               "\\nExpense deleted successfully!"
-
-&#x20;           );
-
-&#x20;       }
-
-&#x20;       catch (InvalidExpenseException ex)
-
-&#x20;       {
-
-&#x20;           Console.WriteLine(
-
-&#x20;               $"\\nError: {ex.Message}"
-
-&#x20;           );
-
-&#x20;       }
-
-&#x20;   }
-
-
-
-
-
-&#x20;   // ========================================================
-
-&#x20;   // MAIN METHOD
-
-&#x20;   // ========================================================
-
-&#x20;   public static void Main(string\[] args)
-
-&#x20;   {
-
-&#x20;       int choice = 0;
-
-
-
-&#x20;       do
-
-&#x20;       {
-
-&#x20;           try
-
-&#x20;           {
-
-&#x20;               Console.WriteLine(
-
-&#x20;                   "\\n========== EXPENSE TRACKER =========="
-
-&#x20;               );
-
-
-
-&#x20;               Console.WriteLine("1. Add Expense");
-
-&#x20;               Console.WriteLine("2. View Expenses");
-
-&#x20;               Console.WriteLine("3. Calculate Total");
-
-&#x20;               Console.WriteLine("4. Delete Expense");
-
-&#x20;               Console.WriteLine("5. Exit");
-
-
-
-&#x20;               Console.Write("Enter your choice: ");
-
-
-
-&#x20;               choice = Convert.ToInt32(
-
-&#x20;                   Console.ReadLine()
-
-&#x20;               );
-
-
-
-&#x20;               switch (choice)
-
-&#x20;               {
-
-&#x20;                   // Add expense
-
-&#x20;                   case 1:
-
-
-
-&#x20;                       Console.Write(
-
-&#x20;                           "Enter description: "
-
-&#x20;                       );
-
-
-
-&#x20;                       string description =
-
-&#x20;                           Console.ReadLine();
-
-
-
-&#x20;                       Console.Write(
-
-&#x20;                           "Enter amount: "
-
-&#x20;                       );
-
-
-
-&#x20;                       double amount =
-
-&#x20;                           Convert.ToDouble(
-
-&#x20;                               Console.ReadLine()
-
-&#x20;                           );
-
-
-
-&#x20;                       Console.Write(
-
-&#x20;                           "Enter category: "
-
-&#x20;                       );
-
-
-
-&#x20;                       string category =
-
-&#x20;                           Console.ReadLine();
-
-
-
-&#x20;                       AddExpense(
-
-&#x20;                           description,
-
-&#x20;                           amount,
-
-&#x20;                           category
-
-&#x20;                       );
-
-
-
-&#x20;                       break;
-
-
-
-
-
-&#x20;                   // View expenses
-
-&#x20;                   case 2:
-
-
-
-&#x20;                       DisplayExpenses();
-
-
-
-&#x20;                       break;
-
-
-
-
-
-&#x20;                   // Calculate total
-
-&#x20;                   case 3:
-
-
-
-&#x20;                       CalculateTotal();
-
-
-
-&#x20;                       break;
-
-
-
-
-
-&#x20;                   // Delete expense
-
-&#x20;                   case 4:
-
-
-
-&#x20;                       Console.Write(
-
-&#x20;                           "Enter Expense ID to delete: "
-
-&#x20;                       );
-
-
-
-&#x20;                       int id =
-
-&#x20;                           Convert.ToInt32(
-
-&#x20;                               Console.ReadLine()
-
-&#x20;                           );
-
-
-
-&#x20;                       DeleteExpense(id);
-
-
-
-&#x20;                       break;
-
-
-
-
-
-&#x20;                   // Exit
-
-&#x20;                   case 5:
-
-
-
-&#x20;                       Console.WriteLine(
-
-&#x20;                           "\\nThank you for using Expense Tracker!"
-
-&#x20;                       );
-
-
-
-&#x20;                       break;
-
-
-
-
-
-&#x20;                   // Invalid choice
-
-&#x20;                   default:
-
-
-
-&#x20;                       Console.WriteLine(
-
-&#x20;                           "\\nInvalid choice! Please select 1-5."
-
-&#x20;                       );
-
-
-
-&#x20;                       break;
-
-&#x20;               }
-
-&#x20;           }
-
-
-
-&#x20;           // Handle invalid number format
-
-&#x20;           catch (FormatException)
-
-&#x20;           {
-
-&#x20;               Console.WriteLine(
-
-&#x20;                   "\\nError: Please enter a valid number."
-
-&#x20;               );
-
-&#x20;           }
-
-
-
-&#x20;           // Handle numbers that are too large
-
-&#x20;           catch (OverflowException)
-
-&#x20;           {
-
-&#x20;               Console.WriteLine(
-
-&#x20;                   "\\nError: The entered number is too large."
-
-&#x20;               );
-
-&#x20;           }
-
-
-
-&#x20;           // Handle unexpected errors
-
-&#x20;           catch (Exception ex)
-
-&#x20;           {
-
-&#x20;               Console.WriteLine(
-
-&#x20;                   $"\\nUnexpected Error: {ex.Message}"
-
-&#x20;               );
-
-&#x20;           }
-
-
-
-&#x20;       } while (choice != 5);
-
-&#x20;   }
-
+    static List<Expense> expenses = new List<Expense>();
+    static int nextId = 1;
+
+    static void Main()
+    {
+        while (true)
+        {
+            Console.WriteLine("\n========== EXPENSE TRACKER ==========");
+            Console.WriteLine("1. Add Expense");
+            Console.WriteLine("2. View Expenses");
+            Console.WriteLine("3. Calculate Total");
+            Console.WriteLine("4. Delete Expense");
+            Console.WriteLine("5. Exit");
+
+            Console.Write("Enter your choice: ");
+            string choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    AddExpense();
+                    break;
+
+                case "2":
+                    ViewExpenses();
+                    break;
+
+                case "3":
+                    CalculateTotal();
+                    break;
+
+                case "4":
+                    DeleteExpense();
+                    break;
+
+                case "5":
+                    Console.WriteLine("\nThank you for using Expense Tracker!");
+                    return;
+
+                default:
+                    Console.WriteLine("\nInvalid choice! Please try again.");
+                    break;
+            }
+        }
+    }
+
+    // Add Expense
+    static void AddExpense()
+    {
+        Console.Write("Enter description: ");
+        string description = Console.ReadLine();
+
+        Console.Write("Enter amount: ");
+        double amount;
+
+        while (!double.TryParse(Console.ReadLine(), out amount) || amount < 0)
+        {
+            Console.Write("Invalid amount. Enter again: ");
+        }
+
+        Console.Write("Enter category: ");
+        string category = Console.ReadLine();
+
+        Expense expense = new Expense
+        {
+            Id = nextId++,
+            Description = description,
+            Amount = amount,
+            Category = category
+        };
+
+        expenses.Add(expense);
+
+        Console.WriteLine("\nExpense added successfully!");
+    }
+
+    // View Expenses
+    static void ViewExpenses()
+    {
+        if (expenses.Count == 0)
+        {
+            Console.WriteLine("\nNo expenses found.");
+            return;
+        }
+
+        Console.WriteLine("\n========== EXPENSES ==========");
+
+        foreach (Expense expense in expenses)
+        {
+            Console.WriteLine(
+                $"ID: {expense.Id} | " +
+                $"Description: {expense.Description} | " +
+                $"Amount: {expense.Amount:F2} | " +
+                $"Category: {expense.Category}"
+            );
+        }
+    }
+
+    // Calculate Total
+    static void CalculateTotal()
+    {
+        double total = 0;
+
+        foreach (Expense expense in expenses)
+        {
+            total += expense.Amount;
+        }
+
+        Console.WriteLine($"\nTotal Expenses: {total:F2}");
+    }
+
+    // Delete Expense
+    static void DeleteExpense()
+    {
+        Console.Write("Enter Expense ID to delete: ");
+        int id;
+
+        if (!int.TryParse(Console.ReadLine(), out id))
+        {
+            Console.WriteLine("\nInvalid ID.");
+            return;
+        }
+
+        Expense expenseToDelete = expenses.Find(e => e.Id == id);
+
+        if (expenseToDelete != null)
+        {
+            expenses.Remove(expenseToDelete);
+            Console.WriteLine("\nExpense deleted successfully!");
+        }
+        else
+        {
+            Console.WriteLine("\nExpense ID not found.");
+        }
+    }
 }
