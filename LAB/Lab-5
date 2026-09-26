@@ -1,0 +1,669 @@
+Source: Default.aspx
+
+Code:
+<%@ Page Language="C#" AutoEventWireup="true"
+    CodeBehind="Default.aspx.cs"
+    Inherits="AcademicCalendarSystem.Default" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head runat="server">
+    <title>Academic Calendar & Leave Management System</title>
+</head>
+
+<body>
+
+<form id="form1" runat="server">
+
+    <h1>Academic Calendar & Leave Management System</h1>
+
+    <h2>Enter Your Name</h2>
+
+    <asp:Label ID="lblName"
+        runat="server"
+        Text="Name:">
+    </asp:Label>
+
+    <asp:TextBox ID="txtName"
+        runat="server">
+    </asp:TextBox>
+
+    <br /><br />
+
+    <asp:CheckBox ID="chkRemember"
+        runat="server"
+        Text="Remember Me">
+    </asp:CheckBox>
+
+    <br /><br />
+
+    <asp:Button ID="btnContinue"
+        runat="server"
+        Text="Continue"
+        OnClick="btnContinue_Click">
+    </asp:Button>
+<br /><br />
+
+    <asp:Label ID="lblMessage"
+        runat="server"
+        ForeColor="Red">
+    </asp:Label>
+
+</form>
+
+</body>
+</html>
+
+Source: Default.aspx.cs
+
+using System;
+using System.Web;
+
+namespace AcademicCalendarSystem
+{
+    public partial class Default : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            if (!IsPostBack)
+            {
+                // Check whether Name Cookie exists
+                if (Request.Cookies["UserName"] != null)
+                {
+                    txtName.Text =
+                        Request.Cookies["UserName"].Value;
+
+                    chkRemember.Checked = true;
+                }
+            }
+        }
+
+        protected void btnContinue_Click(object sender, EventArgs e)
+        {
+            string name = txtName.Text.Trim();
+
+            // Check Name
+            if (name == "")
+            {
+                lblMessage.Text =
+                    "Please enter your name.";
+
+                return;
+            }
+
+            // ==================================
+            // SESSION
+            // ==================================
+
+            Session["UserName"] = name;
+
+
+            // ==================================
+            // COOKIE
+            
+// ==================================
+
+            if (chkRemember.Checked)
+            {
+                // Create Cookie
+                HttpCookie cookie =
+                    new HttpCookie("UserName");
+
+                cookie.Value = name;
+
+                // Cookie valid for 30 days
+                cookie.Expires =
+                    DateTime.Now.AddDays(30);
+
+                Response.Cookies.Add(cookie);
+            }
+            else
+            {
+                // Delete existing Cookie
+                if (Request.Cookies["UserName"] != null)
+                {
+                    HttpCookie cookie =
+                        new HttpCookie("UserName");
+
+                    cookie.Expires =
+                        DateTime.Now.AddDays(-1);
+
+                    Response.Cookies.Add(cookie);
+                }
+            }
+
+
+            // Go to Academic Calendar
+            Response.Redirect("AcademicCalendar.aspx");
+        }
+    }
+}
+
+Source: AcademicCalender.aspx
+
+<%@ Page Language="C#" AutoEventWireup="true"
+    CodeBehind="AcademicCalendar.aspx.cs"
+    Inherits="AcademicCalendarSystem.AcademicCalendar" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head runat="server">
+    <title>Academic Calendar</title>
+</head>
+
+<body>
+
+<form id="form1" runat="server">
+
+
+ <h1>Academic Calendar</h1>
+
+    <asp:Label ID="lblWelcome"
+        runat="server"
+        Font-Bold="true">
+    </asp:Label>
+
+    <hr />
+
+    <h2>Select Date</h2>
+
+    <!-- Calendar Rich Control -->
+
+    <asp:Calendar ID="AcademicCalendarControl"
+        runat="server"
+        OnSelectionChanged="AcademicCalendarControl_SelectionChanged">
+
+        <TitleStyle
+            BackColor="Blue"
+            ForeColor="White" />
+
+        <SelectedDayStyle
+            BackColor="Green"
+            ForeColor="White" />
+
+    </asp:Calendar>
+
+    <br />
+
+    <asp:Label ID="lblSelectedDate"
+        runat="server"
+        Font-Bold="true">
+    </asp:Label>
+
+    <br /><br />
+
+    <asp:Button ID="btnLeave"
+        runat="server"
+        Text="Apply Leave"
+        OnClick="btnLeave_Click">
+    </asp:Button>
+
+    <br /><br />
+
+    <asp:Button ID="btnLogout"
+        runat="server"
+        Text="Logout"
+        OnClick="btnLogout_Click">
+    </asp:Button>
+
+</form>
+
+</body>
+</html>
+
+Source: AcademicCalender.aspx.cs
+
+using System;
+
+namespace AcademicCalendarSystem
+{
+    public partial class AcademicCalendar : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            // Check Session
+
+            if (Session["UserName"] == null)
+            {
+                Response.Redirect("Default.aspx");
+
+                return;
+            }
+
+
+            if (!IsPostBack)
+            {
+                // Get Name from Session
+
+                string name =
+                    Session["UserName"].ToString();
+
+                lblWelcome.Text =
+                    "Welcome, " + name;
+            }
+        }
+
+
+        // Calendar date selection
+
+        protected void AcademicCalendarControl_SelectionChanged(
+            object sender,
+            EventArgs e)
+        {
+            DateTime selectedDate =
+                AcademicCalendarControl.SelectedDate;
+
+
+            // Show selected date
+
+            lblSelectedDate.Text =
+                "Selected Date: " +
+                selectedDate.ToString("dd-MM-yyyy");
+
+
+            // Store selected date in Session
+
+            Session["SelectedDate"] =
+                selectedDate;
+        }
+
+
+        // Apply Leave button
+
+        protected void btnLeave_Click(
+            object sender,
+            EventArgs e)
+        {
+            // Check whether date is selected
+
+            if (Session["SelectedDate"] == null)
+            {
+                lblSelectedDate.Text =
+                    "Please select a date first.";
+
+                return;
+            }
+
+
+            // Go to Leave Management
+
+            Response.Redirect("LeaveManagement.aspx");
+        }
+
+
+        // Logout
+
+        protected void btnLogout_Click(
+            object sender,
+            EventArgs e)
+        {
+            // Clear Session
+
+            Session.Clear();
+
+            Session.Abandon();
+
+
+            // Go to Default page
+
+            Response.Redirect("Default.aspx");
+        }
+    }
+}
+
+Source: LeaveManagement.aspx
+
+<%@ Page Language="C#" AutoEventWireup="true"
+    CodeBehind="LeaveManagement.aspx.cs"
+    Inherits="AcademicCalendarSystem.LeaveManagement" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head runat="server">
+    <title>Leave Management</title>
+</head>
+
+<body>
+
+<form id="form1" runat="server">
+
+    <h1>Leave Management</h1>
+
+    <asp:Label ID="lblWelcome"
+        runat="server"
+        Font-Bold="true">
+    </asp:Label>
+
+    <br /><br />
+
+    <asp:Label ID="lblDate"
+        runat="server"
+        Font-Bold="true">
+    </asp:Label>
+
+    <hr />
+
+    <h2>Leave Application</h2>
+
+
+    <!-- Leave Type -->
+
+    <asp:Label ID="lblLeaveType"
+        runat="server"
+        Text="Leave Type:">
+    </asp:Label>
+
+    <br />
+
+    <asp:DropDownList ID="ddlLeaveType"
+        runat="server">
+
+        <asp:ListItem
+            Text="Casual Leave"
+            Value="Casual Leave">
+        </asp:ListItem>
+
+        <asp:ListItem
+            Text="Medical Leave"
+            Value="Medical Leave">
+        </asp:ListItem>
+
+        <asp:ListItem
+            Text="Emergency Leave"
+            Value="Emergency Leave">
+        </asp:ListItem>
+
+        <asp:ListItem
+            Text="Other"
+            Value="Other">
+        </asp:ListItem>
+
+    </asp:DropDownList>
+
+    <br /><br />
+
+
+    <!-- Reason -->
+
+    <asp:Label ID="lblReason"
+        runat="server"
+        Text="Reason:">
+    </asp:Label>
+
+    <br />
+
+    <asp:TextBox ID="txtReason"
+        runat="server"
+        TextMode="MultiLine"
+        Rows="5"
+        Columns="50">
+    </asp:TextBox>
+
+    <br /><br />
+
+
+    <!-- Apply Button -->
+
+    <asp:Button ID="btnApply"
+        runat="server"
+        Text="Apply Leave"
+        OnClick="btnApply_Click">
+    </asp:Button>
+
+    <br /><br />
+
+
+    <asp:Label ID="lblMessage"
+        runat="server"
+        ForeColor="Green"
+        Font-Bold="true">
+    </asp:Label>
+
+    <hr />
+
+
+    <h2>My Leave Applications</h2>
+
+
+    <!-- GridView Rich Control -->
+
+    <asp:GridView ID="gvLeaves"
+        runat="server"
+        AutoGenerateColumns="true"
+        BorderWidth="1"
+        CellPadding="5">
+    </asp:GridView>
+
+    <br /><br />
+
+
+    <asp:Button ID="btnBack"
+        runat="server"
+        Text="Back to Calendar"
+        OnClick="btnBack_Click">
+    </asp:Button>
+
+    &nbsp;
+
+    <asp:Button ID="btnLogout"
+        runat="server"
+        Text="Logout"
+        OnClick="btnLogout_Click">
+    </asp:Button>
+
+</form>
+
+</body>
+</html>
+
+Source: LeaveManagement.aspx.cs
+
+using System;
+using System.Data;
+
+namespace AcademicCalendarSystem
+{
+    public partial class LeaveManagement : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            // Check User Session
+
+            if (Session["UserName"] == null)
+            {
+                Response.Redirect("Default.aspx");
+
+                return;
+            }
+
+
+            // Check Selected Date
+
+            if (Session["SelectedDate"] == null)
+            {
+                Response.Redirect("AcademicCalendar.aspx");
+
+                return;
+            }
+
+
+            if (!IsPostBack)
+            {
+                // Display User Name
+
+                lblWelcome.Text =
+                    "Welcome, " +
+                    Session["UserName"].ToString();
+
+
+                // Display Selected Date
+
+                DateTime selectedDate =
+                    (DateTime)Session["SelectedDate"];
+
+                lblDate.Text =
+                    "Selected Date: " +
+                    selectedDate.ToString("dd-MM-yyyy");
+
+
+                // Create Leave DataTable in Session
+
+                if (Session["LeaveData"] == null)
+                {
+                    DataTable dt =
+                        new DataTable();
+
+
+                    dt.Columns.Add("Name");
+
+                    dt.Columns.Add("Leave Date");
+
+                    dt.Columns.Add("Leave Type");
+
+                    dt.Columns.Add("Reason");
+
+
+                    Session["LeaveData"] = dt;
+                }
+
+
+                // Show existing leaves
+
+                LoadLeaves();
+            }
+        }
+
+
+        // Apply Leave
+
+        protected void btnApply_Click(
+            object sender,
+            EventArgs e)
+        {
+            // Check Reason
+
+            if (txtReason.Text.Trim() == "")
+            {
+                lblMessage.Text =
+                    "Please enter reason for leave.";
+
+                return;
+            }
+
+
+            // Get DataTable from Session
+
+            DataTable dt =
+                (DataTable)Session["LeaveData"];
+
+
+            // Create new row
+
+            DataRow row =
+                dt.NewRow();
+
+
+            // Name from Session
+
+            row["Name"] =
+                Session["UserName"].ToString();
+
+
+            // Date from Session
+
+            DateTime selectedDate =
+                (DateTime)Session["SelectedDate"];
+
+
+            row["Leave Date"] =
+                selectedDate.ToString("dd-MM-yyyy");
+
+
+            // Leave Type
+
+            row["Leave Type"] =
+                ddlLeaveType.SelectedValue;
+
+
+            // Reason
+
+            row["Reason"] =
+                txtReason.Text.Trim();
+
+
+            // Add row
+
+            dt.Rows.Add(row);
+
+
+            // Save DataTable in Session
+
+            Session["LeaveData"] = dt;
+
+
+            // Success message
+
+            lblMessage.Text =
+                "Leave applied successfully.";
+
+
+            // Clear Reason
+
+           
+ txtReason.Text = "";
+
+
+            // Display leaves
+
+            LoadLeaves();
+        }
+
+
+        // Load leaves into GridView
+
+        private void LoadLeaves()
+        {
+            DataTable dt =
+                (DataTable)Session["LeaveData"];
+
+
+            gvLeaves.DataSource = dt;
+
+            gvLeaves.DataBind();
+        }
+
+
+        // Back to Calendar
+
+        protected void btnBack_Click(
+            object sender,
+            EventArgs e)
+        {
+            Response.Redirect(
+                "AcademicCalendar.aspx");
+        }
+
+
+        // Logout
+
+        protected void btnLogout_Click(
+            object sender,
+            EventArgs e)
+        {
+            // Clear complete Session
+
+            Session.Clear();
+
+            Session.Abandon();
+
+
+            Response.Redirect("Default.aspx");
+        }
+    }
+}
