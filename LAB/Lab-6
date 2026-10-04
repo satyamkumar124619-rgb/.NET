@@ -1,0 +1,209 @@
+Source: ProductController.cs
+Code:
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
+using ProductCatalog.Models;
+
+namespace ProductCatalog.Controllers
+{
+    public class ProductController : Controller
+    {
+        // GET: Product
+        public ActionResult Index()
+        {
+            return View(GetSampleProducts());
+        }
+
+        // GET: Product/Details/201
+        public ActionResult Details(int? id)
+        {
+            if (!id.HasValue)
+            {
+                return RedirectToAction("Index");
+            }
+
+            var product = GetSampleProducts().FirstOrDefault(p => p.ProductId == id.Value);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(product);
+        }
+
+        private List<Product> GetSampleProducts()
+        {
+            return new List<Product>
+            {
+                new Product
+                {
+                    ProductId = 201,
+                    ProductName = "Laptop Pro 15",
+                    Description = "High performance laptop with latest CPU and SSD storage.",
+                    Price = 55000m,
+                    Category = "Electronics",
+                    ImageSvg = ProductImages.Laptop
+                },
+                new Product
+                {
+                    ProductId = 202,
+                    ProductName = "Smartphone X",
+                    Description = "Modern smartphone with excellent camera and battery life.",
+                    Price = 25000m,
+                    Category = "Electronics",
+                    ImageSvg = ProductImages.Phone
+                },
+                new Product
+                {
+                    ProductId = 203,
+                    ProductName = "Noise-Cancelling Headphones",
+                    Description = "Over-ear wireless headphones with active noise cancellation.",
+                    Price = 2500m,
+                    Category = "Accessories",
+                    ImageSvg = ProductImages.Headphones
+                }
+            };
+        }
+    }
+}
+
+Source: Product.cs
+Code:
+
+using System;
+
+namespace ProductCatalog.Models
+{
+    public class Product
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public string Description { get; set; }
+        public decimal Price { get; set; }
+        public string Category { get; set; }
+        // Optional image URL (fallback when ImageSvg is empty)
+        public string ImageUrl { get; set; }
+        // Inline SVG markup (preferred)
+        public string ImageSvg { get; set; }
+    }
+}
+
+Source: Index.cshtml
+Code:
+
+@model IEnumerable<ProductCatalog.Models.Product>
+
+@{
+    ViewBag.Title = "Products";
+}
+
+<style>
+    .pc-grid { display: flex; gap: 18px; flex-wrap: wrap; }
+    .pc-col { flex: 0 0 calc(50% - 9px); box-sizing: border-box; }
+    .pc-card { border: 1px solid #eee; border-radius: 8px; padding: 18px; background: #fff;
+               box-shadow: 0 6px 18px rgba(0,0,0,0.05); height: 100%; box-sizing: border-box;
+               transition: transform .15s ease, box-shadow .15s ease; }
+    .pc-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.09); }
+    .pc-img { height: 190px; border-radius: 6px; overflow: hidden; margin-bottom: 12px; background: #f8fafc; }
+    .pc-img a, .pc-img svg, .pc-img img { display: block; width: 100%; height: 100%; }
+    .pc-img img { object-fit: contain; padding: 8px; box-sizing: border-box; }
+    @@media (max-width: 700px) { .pc-col { flex: 0 0 100%; } }
+</style>
+
+<div class="container" style="max-width:1100px; margin-top:18px;">
+    <div style="background:#29527a; color:#fff; padding:22px; text-align:center; margin-bottom:18px;">
+        <h1 style="margin:0; font-weight:600;">Product Catalog</h1>
+        <div style="font-size:0.95rem; opacity:0.9;">Available Products</div>
+    </div>
+
+    <div class="pc-grid">
+        @foreach (var item in Model)
+        {
+            <div class="pc-col">
+                <div class="pc-card">
+                    <h3 style="color:#2b5f91; margin-top:0;">@item.ProductName</h3>
+                    <div style="color:#6c757d; font-size:0.95rem; margin-bottom:8px;">Category: @item.Category</div>
+                    <p style="color:#444; margin-bottom:12px;">@item.Description</p>
+
+                    <div class="pc-img">
+                        <a href="@Url.Action("Details", "Product", new { id = item.ProductId })">
+                            @if (!string.IsNullOrEmpty(item.ImageSvg))
+                            {
+                                @Html.Raw(item.ImageSvg)
+                            }
+                            else if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@Url.Content(item.ImageUrl)" alt="@item.ProductName" />
+                            }
+                        </a>
+                    </div>
+
+                    <div style="color:#198754; font-weight:700; margin-bottom:10px;">&#8377; @item.Price.ToString("N0")</div>
+                    <a href="@Url.Action("Details", "Product", new { id = item.ProductId })" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+Source: Details.cshtml
+Code:
+
+@model ProductCatalog.Models.Product
+
+@{
+    ViewBag.Title = Model.ProductName;
+}
+
+<style>
+    /* Modern detail layout: large image on the left, info on the right */
+    .modern-container { max-width:1100px; margin:22px auto; padding:0 12px; }
+    .modern-card { display:flex; gap:28px; align-items:flex-start; background:#fff; border-radius:10px; box-shadow:0 12px 30px rgba(31,41,55,0.06); padding:20px; }
+    .modern-media { flex:0 0 520px; border-radius:10px; overflow:hidden; background:#f8fafc; display:flex; align-items:center; justify-content:center; }
+    .modern-media img, .modern-media svg { width:100%; height:100%; display:block; }
+    .modern-info { flex:1; min-width:280px; }
+    .pc-breadcrumb { color:#6b7280; margin-bottom:10px; display:block; }
+    .product-title { color:#0b3a66; font-size:1.8rem; margin:0 0 8px 0; }
+    .product-category { color:#64748b; margin-bottom:10px; }
+    .product-description { color:#334155; line-height:1.5; margin-bottom:18px; }
+    .price { color:#0f5132; font-weight:800; font-size:1.6rem; margin-bottom:18px; }
+    .primary-cta { background:#0d6efd; color:#fff; padding:12px 18px; border-radius:8px; text-decoration:none; display:inline-block; box-shadow:0 6px 18px rgba(13,110,253,0.12); }
+    .secondary-cta { background:transparent; color:#0b3a66; border:1px solid #dfe7ef; padding:10px 14px; border-radius:8px; text-decoration:none; margin-left:10px; }
+    @@media (max-width: 900px) { .modern-card { flex-direction:column; } .modern-media { flex:0 0 auto; height:320px; } }
+</style>
+
+<div class="modern-container">
+    <a class="pc-breadcrumb" href="@Url.Action("Index","Product")">&larr; Back to catalog</a>
+
+    <div class="modern-card">
+        <div class="modern-media">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Url.Content(Model.ImageUrl)" alt="@Model.ProductName" style="object-fit:cover; max-height:520px;" />
+            }
+            else if (!string.IsNullOrEmpty(Model.ImageSvg))
+            {
+                <div style="width:100%; height:100%;">@Html.Raw(Model.ImageSvg)</div>
+            }
+            else
+            {
+                <div style="width:100%; height:320px; display:flex; align-items:center; justify-content:center; color:#9ca3af;">No image available</div>
+            }
+        </div>
+
+        <div class="modern-info">
+            <h1 class="product-title">@Model.ProductName</h1>
+            <div class="product-category">Category: <strong>@Model.Category</strong></div>
+            <div class="product-description">@Model.Description</div>
+
+            <div class="price">&#8377; @Model.Price.ToString("N0")</div>
+
+            <div>
+                <a href="#" class="primary-cta">Add to cart</a>
+                <a href="#" class="secondary-cta">Buy now</a>
+            </div>
+        </div>
+    </div>
+</div>
