@@ -1,0 +1,293 @@
+Source: FeedbackController.cs
+Code:
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
+using FeedbackManagement.Models;
+
+namespace FeedbackManagement.Controllers
+{
+    public class FeedbackController : Controller
+    {
+        // In-memory storage for demo purposes
+        private static readonly List<Feedback> feedbackList = new List<Feedback>();
+
+        // GET: Feedback
+        public ActionResult Index()
+        {
+            return View(feedbackList);
+        }
+
+        // GET: Feedback/Create
+        public ActionResult Create()
+        {
+            return View();
+        }
+
+        // POST: Feedback/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Feedback feedback)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(feedback);
+            }
+
+            feedback.FeedbackId = feedbackList.Count + 1;
+            feedback.SubmittedOn = DateTime.Now;
+            feedbackList.Add(feedback);
+
+            TempData["SuccessMessage"] = "Feedback submitted successfully.";
+
+            return RedirectToAction("Index");
+        }
+
+        // GET: Feedback/Details/5
+        public ActionResult Details(int id)
+        {
+            var item = feedbackList.FirstOrDefault(f => f.FeedbackId == id);
+            if (item == null) return HttpNotFound();
+            return View(item);
+        }
+    }
+}
+
+Source: Feedback.cs
+Code:
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace FeedbackManagement.Models
+{
+    public class Feedback
+    {
+        public int FeedbackId { get; set; }
+
+        [Required(ErrorMessage = "Name is required")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Enter a valid email")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Rating is required")]
+        [Range(1, 5, ErrorMessage = "Rating must be between 1 and 5")]
+        public int Rating { get; set; }
+
+        [Required(ErrorMessage = "Comments are required")]
+        [StringLength(500, ErrorMessage = "Maximum 500 characters allowed")]
+        public string Comments { get; set; }
+
+        public DateTime SubmittedOn { get; set; }
+    }
+}
+
+Source: Create.cshtml
+Code:
+
+@model FeedbackManagement.Models.Feedback
+
+@{
+    ViewBag.Title = "Give Feedback";
+}
+
+<h2>Give Feedback</h2>
+
+<hr />
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Name)
+
+        @Html.TextBoxFor(
+            model => model.Name,
+            new { @class = "form-control" }
+        )
+
+        @Html.ValidationMessageFor(
+            model => model.Name,
+            "",
+            new { @class = "text-danger" }
+        )
+    </div>
+
+    <br />
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Email)
+
+        @Html.TextBoxFor(
+            model => model.Email,
+            new { @class = "form-control" }
+        )
+
+        @Html.ValidationMessageFor(
+            model => model.Email,
+            "",
+            new { @class = "text-danger" }
+        )
+    </div>
+
+    <br />
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Rating)
+
+        @Html.DropDownListFor(
+            model => model.Rating,
+            new SelectList(new[]
+            {
+                new { Value = "1", Text = "1 - Poor" },
+                new { Value = "2", Text = "2 - Fair" },
+                new { Value = "3", Text = "3 - Good" },
+                new { Value = "4", Text = "4 - Very Good" },
+                new { Value = "5", Text = "5 - Excellent" }
+            }, "Value", "Text"),
+            "Select Rating",
+            new { @class = "form-control" }
+        )
+
+        @Html.ValidationMessageFor(
+            model => model.Rating,
+            "",
+            new { @class = "text-danger" }
+        )
+    </div>
+
+    <br />
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Comments)
+
+        @Html.TextAreaFor(
+            model => model.Comments,
+            5,
+            50,
+            new { @class = "form-control" }
+        )
+
+        @Html.ValidationMessageFor(
+            model => model.Comments,
+            "",
+            new { @class = "text-danger" }
+        )
+    </div>
+
+    <br />
+
+    <button type="submit" class="btn btn-primary">
+        Submit Feedback
+    </button>
+
+    @Html.ActionLink(
+        "Back",
+        "Index",
+        "Feedback",
+        null,
+        new { @class = "btn btn-default" }
+    )
+}
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+
+Source: Details.cshtml
+Code:
+
+@model FeedbackManagement.Models.Feedback
+
+@{
+    ViewBag.Title = "Feedback Details";
+}
+
+<h2>Feedback Details</h2>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-2">Name</dt>
+            <dd class="col-sm-10">@Model.Name</dd>
+
+            <dt class="col-sm-2">Email</dt>
+            <dd class="col-sm-10">@Model.Email</dd>
+
+            <dt class="col-sm-2">Rating</dt>
+            <dd class="col-sm-10">@Model.Rating / 5</dd>
+
+            <dt class="col-sm-2">Comments</dt>
+            <dd class="col-sm-10">@Model.Comments</dd>
+
+            <dt class="col-sm-2">Submitted On</dt>
+            <dd class="col-sm-10">@Model.SubmittedOn</dd>
+        </dl>
+
+        <p>
+            @Html.ActionLink("Back to List", "Index", "Feedback", null, new { @class = "btn btn-secondary" })
+            @Html.ActionLink("Edit", "Edit", "Feedback", new { id = Model.FeedbackId }, new { @class = "btn btn-primary" })
+        </p>
+    </div>
+</div>
+
+
+Source: Index.cshtml
+Code:
+
+@model IEnumerable<FeedbackManagement.Models.Feedback>
+
+@{
+    ViewBag.Title = "Feedback List";
+}
+
+<h2>Feedback List</h2>
+
+<p>
+    @Html.ActionLink(
+        "Give Feedback",
+        "Create",
+        "Feedback",
+        null,
+        new { @class = "btn btn-primary" }
+    )
+</p>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        No feedback available.
+    </div>
+}
+else
+{
+    <table class="table table-bordered">
+
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Rating</th>
+            <th>Comments</th>
+            <th>Date</th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.Email</td>
+                <td>@item.Rating / 5</td>
+                <td>@item.Comments</td>
+                <td>@item.SubmittedOn</td>
+            </tr>
+        }
+
+    </table>
+}
