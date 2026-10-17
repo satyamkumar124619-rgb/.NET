@@ -1,0 +1,604 @@
+Source: CreateInventoryDB.sql
+Code:
+
+-- Setup script for (localdb)\MSSQLLocalDB. Run in Visual Studio: SQL Server Object Explorer -> (localdb)\MSSQLLocalDB -> New Query
+IF DB_ID('InventoryDB') IS NULL
+    CREATE DATABASE InventoryDB;
+GO
+
+USE InventoryDB;
+GO
+
+IF OBJECT_ID('dbo.Products') IS NOT NULL
+    DROP TABLE dbo.Products;
+GO
+
+CREATE TABLE dbo.Products (
+    ProductID   INT IDENTITY(1,1) PRIMARY KEY,
+    ProductName NVARCHAR(100) NOT NULL,
+    Category    NVARCHAR(100) NULL,
+    Quantity    INT NOT NULL,
+    Price       DECIMAL(10,2) NOT NULL
+);
+GO
+
+INSERT INTO dbo.Products (ProductName, Category, Quantity, Price) VALUES
+('Laptop',   'Electronics', 10, 55000),
+('Mouse',    'Accessories',  3,   500),
+('Keyboard', 'Accessories', 25,  1200);
+GO
+
+SELECT ProductID, ProductName, Category, Quantity, Price
+FROM dbo.Products
+ORDER BY ProductID;
+GO
+
+Source: run_setup.bat
+Code:
+
+@echo off
+echo Setting up InventoryDB on .\SQLEXPRESS ...
+echo.
+sqlcmd -S .\SQLEXPRESS -E -b -i "%~dp0setup.sql"
+if %errorlevel% neq 0 (
+	echo.
+	echo [FAILED] Setup did not complete. See the error above.
+) else (
+	echo.
+	echo [DONE] InventoryDB is ready. Refresh the website page.
+)
+echo.
+pause
+
+
+Source: setup.sql
+Code:
+IF DB_ID('InventoryDB') IS NULL
+	CREATE DATABASE InventoryDB;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'SATYAMKUMAR\satya')
+	CREATE LOGIN [SATYAMKUMAR\satya] FROM WINDOWS;
+GO
+
+USE InventoryDB;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'SATYAMKUMAR\satya')
+	CREATE USER [SATYAMKUMAR\satya] FOR LOGIN [SATYAMKUMAR\satya];
+ALTER ROLE db_owner ADD MEMBER [SATYAMKUMAR\satya];
+GO
+
+IF OBJECT_ID('dbo.Products') IS NOT NULL DROP TABLE dbo.Products;
+GO
+
+CREATE TABLE dbo.Products (
+	ProductID   INT IDENTITY(1,1) PRIMARY KEY,
+	ProductName NVARCHAR(100) NOT NULL,
+	Category    NVARCHAR(100) NULL,
+	Quantity    INT NOT NULL,
+	Price       DECIMAL(10,2) NOT NULL
+);
+GO
+
+INSERT INTO dbo.Products (ProductName, Category, Quantity, Price) VALUES
+('Laptop','Electronics',10,55000),
+('Mouse','Accessories',3,500),
+('Keyboard','Accessories',25,1200);
+GO
+
+SELECT * FROM dbo.Products;
+
+
+Source: Default.aspx
+Code:
+<%@ Page Language="C#" AutoEventWireup="true"
+    CodeBehind="Default.aspx.cs"
+    Inherits="InventoryManagement._Default" %>
+
+<!DOCTYPE html>
+<html>
+<head runat="server">
+    <title>Inventory Management</title>
+    <style>
+        body { font-family: Arial; margin: 35px; }
+        .container { max-width: 850px; margin: auto; }
+        .field { margin: 12px 0; }
+        .field label { display: inline-block; width: 140px; }
+        .field input { padding: 7px; width: 250px; }
+        .btn { padding: 8px 16px; margin: 5px 3px; cursor: pointer; }
+        .grid { margin-top: 20px; border-collapse: collapse; width: 100%; }
+        .grid th, .grid td { border: 1px solid #aaa; padding: 9px; }
+        .grid th { background: #eee; }
+        .message { margin: 12px 0; }
+    </style>
+</head>
+<body>
+<form id="form1" runat="server">
+<div class="container">
+    <h1>Inventory Management</h1>
+
+    <div class="field">
+        <label>Product ID</label>
+        <asp:TextBox ID="txtProductID" runat="server"
+            ReadOnly="true" />
+    </div>
+    <div class="field">
+        <label>Product Name</label>
+        <asp:TextBox ID="txtProductName" runat="server" />
+    </div>
+    <div class="field">
+        <label>Category</label>
+        <asp:TextBox ID="txtCategory" runat="server" />
+    </div>
+    <div class="field">
+        <label>Quantity</label>
+        <asp:TextBox ID="txtQuantity" runat="server"
+            TextMode="Number" />
+    </div>
+    <div class="field">
+        <label>Price</label>
+        <asp:TextBox ID="txtPrice" runat="server"
+            TextMode="Number" />
+    </div>
+
+    <asp:Button ID="btnInsert" runat="server" Text="Insert"
+        CssClass="btn" OnClick="btnInsert_Click" />
+    <asp:Button ID="btnUpdate" runat="server" Text="Update"
+        CssClass="btn" OnClick="btnUpdate_Click" />
+    <asp:Button ID="btnDelete" runat="server" Text="Delete"
+        CssClass="btn" OnClick="btnDelete_Click" />
+    <asp:Button ID="btnClear" runat="server" Text="Clear"
+        CssClass="btn" OnClick="btnClear_Click"
+        CausesValidation="false" />
+
+    <div class="message">
+        <asp:Label ID="lblMessage" runat="server" />
+    </div>
+
+    <asp:GridView ID="gvProducts" runat="server"
+        AutoGenerateColumns="False"
+        DataKeyNames="ProductID"
+        CssClass="grid"
+        OnSelectedIndexChanged="gvProducts_SelectedIndexChanged">
+        <Columns>
+            <asp:CommandField ShowSelectButton="true"
+                SelectText="Select" />
+            <asp:BoundField DataField="ProductID"
+                HeaderText="ID" />
+            <asp:BoundField DataField="ProductName"
+                HeaderText="Product Name" />
+            <asp:BoundField DataField="Category"
+                HeaderText="Category" />
+            <asp:BoundField DataField="Quantity"
+                HeaderText="Quantity" />
+            <asp:BoundField DataField="Price"
+                HeaderText="Price" />
+        </Columns>
+    </asp:GridView>
+</div>
+</form>
+</body>
+</html>
+
+
+Source: Default.aspx.cs
+Code:
+using System;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
+using System.Globalization;
+using System.Web;
+using System.Web.UI;
+
+namespace InventoryManagement
+{
+    public partial class _Default : Page
+    {
+        private readonly string cs = ConfigurationManager
+            .ConnectionStrings["InventoryDB"]
+            .ConnectionString;
+
+        private static bool dbReady = false;
+
+        // Creates InventoryDB and the Products table (with sample rows) if missing.
+        void EnsureDatabase()
+        {
+            if (dbReady) return;
+
+            var builder = new SqlConnectionStringBuilder(cs);
+            string dbName = builder.InitialCatalog;
+            builder.InitialCatalog = "master";
+
+            using (SqlConnection con = new SqlConnection(builder.ConnectionString))
+            {
+                con.Open();
+                using (SqlCommand cmd = new SqlCommand(
+                    "IF DB_ID(@db) IS NULL EXEC('CREATE DATABASE [' + @db + ']')", con))
+                {
+                    cmd.Parameters.AddWithValue("@db", dbName);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+
+            builder.InitialCatalog = dbName;
+            using (SqlConnection con = new SqlConnection(builder.ConnectionString))
+            using (SqlCommand cmd = new SqlCommand(@"
+                IF OBJECT_ID('dbo.Products') IS NULL
+                BEGIN
+                    CREATE TABLE dbo.Products (
+                        ProductID   INT IDENTITY(1,1) PRIMARY KEY,
+                        ProductName NVARCHAR(100) NOT NULL,
+                        Category    NVARCHAR(100) NULL,
+                        Quantity    INT NOT NULL,
+                        Price       DECIMAL(10,2) NOT NULL
+                    );
+                    INSERT INTO dbo.Products (ProductName, Category, Quantity, Price) VALUES
+                        ('Laptop',   'Electronics', 10, 55000),
+                        ('Mouse',    'Accessories',  3,   500),
+                        ('Keyboard', 'Accessories', 25,  1200);
+                END", con))
+            {
+                con.Open();
+                cmd.ExecuteNonQuery();
+            }
+
+            dbReady = true;
+        }
+
+        protected void Page_Load(object sender, EventArgs e)
+        {
+            try
+            {
+                EnsureDatabase();
+            }
+            catch (SqlException ex)
+            {
+                ShowMessage("Could not set up database on '"
+                    + new SqlConnectionStringBuilder(cs).DataSource + "': " + ex.Message, false);
+                return;
+            }
+
+            if (!IsPostBack)
+            {
+                LoadProducts();
+            }
+        }
+
+        void ShowMessage(string text, bool success)
+        {
+            lblMessage.Text = text;
+            lblMessage.ForeColor = success
+                ? System.Drawing.Color.Green
+                : System.Drawing.Color.Red;
+        }
+
+        void LoadProducts()
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                using (SqlDataAdapter da = new SqlDataAdapter(
+                    "SELECT ProductID, ProductName, Category, Quantity, Price " +
+                    "FROM Products ORDER BY ProductID", con))
+                {
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+                    gvProducts.DataSource = dt;
+                    gvProducts.DataBind();
+
+                    ShowMessage("Loaded " + dt.Rows.Count + " product(s) from "
+                        + con.DataSource + " / " + con.Database, dt.Rows.Count > 0);
+                }
+            }
+            catch (SqlException ex)
+            {
+                ShowMessage("Database error: " + ex.Message, false);
+            }
+        }
+
+        // Validates the form fields; returns false and shows a message if invalid.
+        bool TryReadInputs(out string name, out string category,
+                           out int qty, out decimal price)
+        {
+            name = txtProductName.Text.Trim();
+            category = txtCategory.Text.Trim();
+            qty = 0;
+            price = 0;
+
+            if (name == "")
+            {
+                ShowMessage("Product name is required.", false);
+                return false;
+            }
+            if (!int.TryParse(txtQuantity.Text, NumberStyles.Integer,
+                    CultureInfo.InvariantCulture, out qty) || qty < 0)
+            {
+                ShowMessage("Enter a valid quantity (0 or more).", false);
+                return false;
+            }
+            if (!decimal.TryParse(txtPrice.Text, NumberStyles.Number,
+                    CultureInfo.InvariantCulture, out price) || price < 0)
+            {
+                ShowMessage("Enter a valid price (0 or more).", false);
+                return false;
+            }
+            return true;
+        }
+
+        bool TryReadId(out int id)
+        {
+            if (!int.TryParse(txtProductID.Text, out id))
+            {
+                ShowMessage("Select a product from the table first.", false);
+                return false;
+            }
+            return true;
+        }
+
+        protected void btnInsert_Click(object sender, EventArgs e)
+        {
+            if (!TryReadInputs(out string name, out string category,
+                               out int qty, out decimal price))
+                return;
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(cs))
+                using (SqlCommand cmd = new SqlCommand(
+                    @"INSERT INTO Products (ProductName, Category, Quantity, Price)
+                      VALUES (@name, @category, @qty, @price)", con))
+                {
+                    cmd.Parameters.AddWithValue("@name", name);
+                    cmd.Parameters.AddWithValue("@category", category);
+                    cmd.Parameters.AddWithValue("@qty", qty);
+                    cmd.Parameters.AddWithValue("@price", price);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                ShowMessage("Product added successfully.", true);
+                ClearFields();
+            }
+            catch (SqlException ex)
+            {
+                ShowMessage("Database error: " + ex.Message, false);
+            }
+            LoadProducts();
+        }
+
+        protected void btnUpdate_Click(object sender, EventArgs e)
+        {
+            if (!TryReadId(out int id)) return;
+            if (!TryReadInputs(out string name, out string category,
+                               out int qty, out decimal price))
+                return;
+
+            try
+            {
+                int rows;
+                using (SqlConnection con = new SqlConnection(cs))
+                using (SqlCommand cmd = new SqlCommand(
+                    @"UPDATE Products SET
+                        ProductName=@name, Category=@category,
+                        Quantity=@qty, Price=@price
+                      WHERE ProductID=@id", con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.Parameters.AddWithValue("@name", name);
+                    cmd.Parameters.AddWithValue("@category", category);
+                    cmd.Parameters.AddWithValue("@qty", qty);
+                    cmd.Parameters.AddWithValue("@price", price);
+
+                    con.Open();
+                    rows = cmd.ExecuteNonQuery();
+                }
+
+                if (rows > 0)
+                {
+                    ShowMessage("Product updated successfully.", true);
+                    ClearFields();
+                }
+                else
+                {
+                    ShowMessage("Product not found.", false);
+                }
+            }
+            catch (SqlException ex)
+            {
+                ShowMessage("Database error: " + ex.Message, false);
+            }
+            LoadProducts();
+        }
+
+        protected void btnDelete_Click(object sender, EventArgs e)
+        {
+            if (!TryReadId(out int id)) return;
+
+            try
+            {
+                int rows;
+                using (SqlConnection con = new SqlConnection(cs))
+                using (SqlCommand cmd = new SqlCommand(
+                    "DELETE FROM Products WHERE ProductID=@id", con))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    con.Open();
+                    rows = cmd.ExecuteNonQuery();
+                }
+
+                if (rows > 0)
+                {
+                    ShowMessage("Product deleted successfully.", true);
+                    ClearFields();
+                }
+                else
+                {
+                    ShowMessage("Product not found.", false);
+                }
+            }
+            catch (SqlException ex)
+            {
+                ShowMessage("Database error: " + ex.Message, false);
+            }
+            LoadProducts();
+        }
+
+        protected void btnClear_Click(object sender, EventArgs e)
+        {
+            ClearFields();
+            // Clear the visible message and report success for debugging
+            ShowMessage("", true);
+        }
+
+        void ClearFields()
+        {
+            txtProductID.Text = "";
+            txtProductName.Text = "";
+            txtCategory.Text = "";
+            txtQuantity.Text = "";
+            txtPrice.Text = "";
+        }
+
+        protected void gvProducts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (gvProducts.SelectedDataKey == null)
+                {
+                    ShowMessage("No product selected.", false);
+                    return;
+                }
+
+                txtProductID.Text = gvProducts.SelectedDataKey.Value.ToString();
+
+                var row = gvProducts.SelectedRow;
+                // Cells: 0=Select,1=ProductID,2=ProductName,3=Category,4=Quantity,5=Price
+                txtProductName.Text = HttpUtility.HtmlDecode(row.Cells[2].Text);
+                txtCategory.Text = HttpUtility.HtmlDecode(row.Cells[3].Text)
+                    .Replace("\u00a0", "");   // empty cells render as &nbsp;
+                txtQuantity.Text = row.Cells[4].Text;
+                txtPrice.Text = row.Cells[5].Text;
+
+                ShowMessage("Product selected for editing.", true);
+            }
+            catch (Exception ex)
+            {
+                ShowMessage("Error selecting product: " + ex.Message, false);
+            }
+        }
+    }
+}
+
+Source: About.aspx
+Code:
+<%@ Page Title="About" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="About.aspx.cs" Inherits="InventoryManagement.About" %>
+
+<asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
+    <main aria-labelledby="title">
+        <h2 id="title"><%: Title %>.</h2>
+        <h3>Your application description page.</h3>
+        <p>Use this area to provide additional information.</p>
+    </main>
+</asp:Content>
+
+Source: About.aspx.cs
+Code:
+     using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+namespace InventoryManagement
+{
+    public partial class About : Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
+
+
+Source: Web.config
+Code:
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+	<connectionStrings>
+		<add name="InventoryDB"
+			 connectionString="Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=InventoryDB;Integrated Security=True;TrustServerCertificate=True"
+			 providerName="System.Data.SqlClient" />
+	</connectionStrings>
+
+	<system.web>
+		<compilation debug="true" targetFramework="4.8" />
+		<httpRuntime targetFramework="4.8" />
+
+		<pages>
+			<namespaces>
+				<add namespace="System.Web.Optimization" />
+			</namespaces>
+			<controls>
+				<add assembly="Microsoft.AspNet.Web.Optimization.WebForms"
+					 namespace="Microsoft.AspNet.Web.Optimization.WebForms"
+					 tagPrefix="webopt" />
+			</controls>
+		</pages>
+	</system.web>
+
+	<runtime>
+		<assemblyBinding xmlns="urn:schemas-microsoft-com:asm.v1">
+
+			<dependentAssembly>
+				<assemblyIdentity name="Antlr3.Runtime"
+								  publicKeyToken="eb42632606e9261f" />
+				<bindingRedirect oldVersion="0.0.0.0-3.5.0.2"
+								 newVersion="3.5.0.2" />
+			</dependentAssembly>
+
+			<dependentAssembly>
+				<assemblyIdentity name="Microsoft.Web.Infrastructure"
+								  publicKeyToken="31bf3856ad364e35" />
+				<bindingRedirect oldVersion="0.0.0.0-2.0.0.0"
+								 newVersion="2.0.0.0" />
+			</dependentAssembly>
+
+			<dependentAssembly>
+				<assemblyIdentity name="Newtonsoft.Json"
+								  publicKeyToken="30ad4fe6b2a6aeed" />
+				<bindingRedirect oldVersion="0.0.0.0-13.0.0.0"
+								 newVersion="13.0.0.0" />
+			</dependentAssembly>
+
+			<dependentAssembly>
+				<assemblyIdentity name="WebGrease"
+								  publicKeyToken="31bf3856ad364e35" />
+				<bindingRedirect oldVersion="0.0.0.0-1.6.5135.21930"
+								 newVersion="1.6.5135.21930" />
+			</dependentAssembly>
+
+		</assemblyBinding>
+	</runtime>
+
+	<system.codedom>
+		<compilers>
+			<compiler language="c#;cs;csharp"
+					  extension=".cs"
+					  type="Microsoft.CodeDom.Providers.DotNetCompilerPlatform.CSharpCodeProvider, Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+					  warningLevel="4"
+					  compilerOptions="/langversion:default /nowarn:1659;1699;1701" />
+
+			<compiler language="vb;vbs;visualbasic;vbscript"
+					  extension=".vb"
+					  type="Microsoft.CodeDom.Providers.DotNetCompilerPlatform.VBCodeProvider, Microsoft.CodeDom.Providers.DotNetCompilerPlatform, Version=2.0.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+					  warningLevel="4"
+					  compilerOptions="/langversion:default /nowarn:41008 /define:_MYTYPE=\&quot;Web\&quot; /optionInfer+" />
+		</compilers>
+	</system.codedom>
+
+</configuration>
