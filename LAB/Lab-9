@@ -1,0 +1,223 @@
+Source: DashboardViewModel.cs
+Code:
+namespace Placement_Dashboard.Models;
+
+public class PlacementStudent
+{
+    public int StudentId { get; set; }
+    public string StudentName { get; set; } = string.Empty;
+    public string Course { get; set; } = string.Empty;
+    public string CompanyName { get; set; } = string.Empty;
+    public decimal Package { get; set; }
+    public string Status { get; set; } = "Not Placed";
+}
+
+public class DashboardViewModel
+{
+    public string StatusFilter { get; set; } = "All";
+    public int TotalStudents { get; set; }
+    public int PlacedStudents { get; set; }
+    public int NotPlacedStudents { get; set; }
+    public int CompaniesCount { get; set; }
+    public double PlacementRate { get; set; }
+    public List<PlacementStudent> Students { get; set; } = new();
+}
+
+Source: ErrorViewModel.cs
+Code:
+namespace Placement_Dashboard.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
+
+Source: Index.cshtml
+Code:
+@model Placement_Dashboard.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Placement Dashboard";
+}
+
+<div class="dashboard-container">
+    <h1 class="mb-4">Student Placement Dashboard</h1>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="label">Total Students</div>
+                    <div class="value">@Model.TotalStudents</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="label">Students Placed</div>
+                    <div class="value">@Model.PlacedStudents</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="label">Companies</div>
+                    <div class="value">@Model.CompaniesCount</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card h-100">
+                <div class="card-body">
+                    <div class="label">Placement Rate</div>
+                    <div class="value">@Model.PlacementRate.ToString("0.0")%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filters mb-3 d-flex gap-2 align-items-center">
+        <form method="get" asp-controller="Home" asp-action="Index">
+            <div class="input-group w-auto" style="max-width: 340px;">
+                <select class="form-select" name="status" id="status">
+                    <option value="All" selected="@(Model.StatusFilter == "All")">All Students</option>
+                    <option value="Placed" selected="@(Model.StatusFilter == "Placed")">Placed</option>
+                    <option value="Not Placed" selected="@(Model.StatusFilter == "Not Placed")">Not Placed</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </form>
+        <a asp-controller="Home" asp-action="Report" asp-route-status="@Model.StatusFilter" class="btn btn-outline-secondary">Printable Report</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Student ID</th>
+                    <th>Student Name</th>
+                    <th>Course</th>
+                    <th>Company Name</th>
+                    <th>Package</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var student in Model.Students)
+                {
+                    <tr>
+                        <td>@student.StudentId</td>
+                        <td>@student.StudentName</td>
+                        <td>@student.Course</td>
+                        <td>@student.CompanyName</td>
+                        <td>@student.Package.ToString("0.0") LPA</td>
+                        <td>@student.Status</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+Source: Privacy.cshtml
+Code:
+@{
+    ViewData["Title"] = "Privacy Policy";
+}
+<h1>@ViewData["Title"]</h1>
+
+<p>Use this page to detail your site's privacy policy.</p>
+
+Source: Report.cstml
+Code:
+@model List<Placement_Dashboard.Models.PlacementStudent>
+@{
+    ViewData["Title"] = "Printable Placement Report";
+}
+
+<div class="report-page">
+    <div class="report-toolbar no-print d-flex justify-content-between align-items-center">
+        <h1 class="mb-0">Student Placement Report</h1>
+        <div>
+            <button type="button" class="btn btn-primary" onclick="window.print()">Print Report</button>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Student ID</th>
+                <th>Student Name</th>
+                <th>Course</th>
+                <th>Company Name</th>
+                <th>Package</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in Model)
+            {
+                <tr>
+                    <td>@student.StudentId</td>
+                    <td>@student.StudentName</td>
+                    <td>@student.Course</td>
+                    <td>@student.CompanyName</td>
+                    <td>@student.Package.ToString("0.0") LPA</td>
+                    <td>@student.Status</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+Source: _ViewImports.cshtml
+Code:
+@using Placement_Dashboard
+@using Placement_Dashboard.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+Source: _ViewStart.cshtml
+Code:
+@{
+    Layout = "_Layout";
+}
+
+
+Source: Program.cs
+Code:
+using Placement_Dashboard.Services;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<PlacementDataService>();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
+
+app.Run();
