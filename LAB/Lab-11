@@ -1,0 +1,160 @@
+Source: HomeController.cs
+Code:
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using Smart_Campus.Data;
+using Smart_Campus.Models;
+using System.Diagnostics;
+
+namespace Smart_Campus.Controllers
+{
+    public class HomeController : Controller
+    {
+        private readonly ILogger<HomeController> _logger;
+        private readonly SmartCampusContext _context;
+
+        public HomeController(ILogger<HomeController> logger, SmartCampusContext context)
+        {
+            _logger = logger;
+            _context = context;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var serviceRequests = await _context.ServiceRequests
+                .AsNoTracking()
+                .OrderByDescending(request => request.RequestDate)
+                .ToListAsync();
+
+            return View(serviceRequests);
+        }
+
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var serviceRequest = await _context.ServiceRequests
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.RequestId == id);
+
+            if (serviceRequest == null)
+            {
+                return NotFound();
+            }
+
+            return View(serviceRequest);
+        }
+
+        public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+    }
+}
+
+Source: SmartCampusContext.cs
+Code:
+using Microsoft.EntityFrameworkCore;
+using Smart_Campus.Models;
+
+namespace Smart_Campus.Data;
+
+public class SmartCampusContext : DbContext
+{
+    public SmartCampusContext(DbContextOptions<SmartCampusContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+}
+
+Source: ErrorViewModel.cs
+Code:
+namespace Smart_Campus.Models
+{
+    public class ErrorViewModel
+    {
+        public string? RequestId { get; set; }
+
+        public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    }
+}
+
+Source: ServiceRequest.cs
+Code:
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Smart_Campus.Models;
+
+[Table("ServiceRequests")]
+public class ServiceRequest
+{
+    [Key]
+    public int RequestId { get; set; }
+
+    [Required, StringLength(100)]
+    public string StudentName { get; set; } = string.Empty;
+
+    [Required, StringLength(100)]
+    public string Department { get; set; } = string.Empty;
+
+    [Required, StringLength(50)]
+    public string ServiceType { get; set; } = string.Empty;
+
+    [Required, StringLength(500)]
+    public string Description { get; set; } = string.Empty;
+
+    [Required, StringLength(20)]
+    public string Priority { get; set; } = string.Empty;
+
+    [Required, StringLength(20)]
+    public string Status { get; set; } = string.Empty;
+
+    public DateTime RequestDate { get; set; }
+}
+
+Source: Program.cs
+Code:
+using Microsoft.EntityFrameworkCore;
+using Smart_Campus.Data;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<SmartCampusContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SmartCampus")));
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
